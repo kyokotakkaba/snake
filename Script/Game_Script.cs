@@ -7,12 +7,16 @@ public class Game_Script : MonoBehaviour {
 	private GameObject menuUI;
 	private GameObject playUI;
 
-	//Head dimension
+	//Head
 	private GameObject head;
 	private Sprite headSprite;
 	private Vector2 headSize;
 	private Vector2 headNextPosition;
 	private Vector3 headRotate;
+
+	//shadow
+	private GameObject headShadow;
+	private Vector2 headShadowNextPosition;
 
 	//tail
 	public GameObject tailPrefab;
@@ -29,6 +33,10 @@ public class Game_Script : MonoBehaviour {
 	private Queue<GameObject> digestObject;
 	private GameObject tempDigestObject;
 
+	//endless stages spawn
+	public Stage_Templates[] stageTemplates;
+	public int stagesInitialCount;
+	private float recentStageHeight;
 
 	//speed and delay
 	public float snakeSpeed;
@@ -57,6 +65,10 @@ public class Game_Script : MonoBehaviour {
 		headNextPosition = new Vector2 (0, 0); // initialize only
 		headRotate = new Vector3(0,0,0); //initialize only
 
+		//shadow
+		headShadow = GameObject.Find ("Shadow");
+		headShadowNextPosition = new Vector2 (0, 0); // initialize only
+
 		lastMoveTime = 0f; //initialize only
 
 		isPlaying = false;
@@ -74,6 +86,13 @@ public class Game_Script : MonoBehaviour {
 
 		//digest
 		digestObject = new Queue<GameObject>();
+
+
+
+		//stages inital spawn
+		for (int i = 0; i < stagesInitialCount; i++) {
+			
+		}
 
 	}
 	
@@ -109,6 +128,11 @@ public class Game_Script : MonoBehaviour {
 		headNextPosition.x = head.transform.position.x + (direction.x * headSize.x);
 		headNextPosition.y = head.transform.position.y + (direction.y * headSize.y);
 		head.transform.position = headNextPosition;
+
+		//move shadow
+		headShadowNextPosition.x = headShadow.transform.position.x + (direction.x * headSize.x);
+		headShadowNextPosition.y = headShadow.transform.position.y + (direction.y * headSize.y);
+		headShadow.transform.position = headShadowNextPosition;
 	}
 
 	public void eat(){
