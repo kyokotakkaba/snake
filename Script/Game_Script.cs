@@ -6,6 +6,11 @@ public class Game_Script : MonoBehaviour {
 	//UI object
 	private GameObject menuUI;
 	private GameObject playUI;
+	//moving field
+	private GameObject movingField;
+	private Vector2 movingFieldPosition;
+	private float movingLine;
+	private int distance;
 
 	//Head
 	private GameObject head;
@@ -36,7 +41,14 @@ public class Game_Script : MonoBehaviour {
 	//endless stages spawn
 	public Stage_Templates[] stageTemplates;
 	public int stagesInitialCount;
+	private GameObject recentStageObject;
 	private float recentStageHeight;
+	//random prefabs to spawn
+	private List<GameObject> prefabsToRand;
+	private GameObject selectedPrefab;
+	private float selectedPrefabHeight;
+	private Vector2 spawnPosition;
+
 
 	//speed and delay
 	public float snakeSpeed;
@@ -48,12 +60,19 @@ public class Game_Script : MonoBehaviour {
 	private Vector2 tempDirection; //to Avoid multiple direction change on delay
 
 
+
 	// Use this for initialization
 	void Start () {
 		//UI
 		menuUI = GameObject.Find ("MainMenu");
 		playUI = GameObject.Find ("GamePlay");
 		playUI.SetActive (false);
+
+		//moving field
+		movingField = GameObject.Find("MovingField");
+		movingFieldPosition = movingField.transform.position;
+		distance = 0;
+		movingLine = GameObject.Find ("MovingLine").transform.position.y;
 
 		//Head dimension
 		head = GameObject.Find ("Head");
@@ -80,6 +99,7 @@ public class Game_Script : MonoBehaviour {
 		tailSpawnPosition = new Vector2(head.transform.position.x,head.transform.position.y - headSize.y);
 		for (int i = 0; i < tailInitialCount; i++) {
 			tailSpawnObject = (GameObject)Instantiate (tailPrefab, tailSpawnPosition, Quaternion.identity);
+			tailSpawnObject.transform.parent = movingField.transform;
 			tailTransform.Add (tailSpawnObject.transform);
 			tailSpawnPosition.y = tailSpawnPosition.y - headSize.y;
 		}
@@ -88,10 +108,11 @@ public class Game_Script : MonoBehaviour {
 		digestObject = new Queue<GameObject>();
 
 
-
 		//stages inital spawn
+		prefabsToRand = new List<GameObject>();
+		recentStageObject = GameObject.Find("Stage0");
 		for (int i = 0; i < stagesInitialCount; i++) {
-			
+			spawnStages ();
 		}
 
 	}
@@ -133,27 +154,62 @@ public class Game_Script : MonoBehaviour {
 		headShadowNextPosition.x = headShadow.transform.position.x + (direction.x * headSize.x);
 		headShadowNextPosition.y = headShadow.transform.position.y + (direction.y * headSize.y);
 		headShadow.transform.position = headShadowNextPosition;
+
+		//move field
+		if (head.transform.position.y>movingLine) {
+			movingFieldPosition.y = movingFieldPosition.y - (direction.y * headSize.y);
+			movingField.transform.position = movingFieldPosition;
+			distance++;
+		}
+
 	}
 
 	public void eat(){
-		digestObject.Enqueue((GameObject)Instantiate (digestPrefab, head.transform.position, Quaternion.identity));
+		tempDigestObject = (GameObject)Instantiate (digestPrefab, head.transform.position, Quaternion.identity);
+		tempDigestObject.transform.parent = movingField.transform;
+		digestObject.Enqueue(tempDigestObject);
 	}
 
 	private void Digesting(){
 		if (digestObject.Count>0 &&
 			Vector2.Distance(digestObject.Peek().transform.position,
 				tailTransform[tailTransform.Count-1].position) <= 0.1f) {
-			print ("Digested");
 			tempDigestObject = digestObject.Dequeue ();
 
 
 			//spawn tail
 			tailSpawnPosition = tempDigestObject.transform.position;
 			tailSpawnObject = (GameObject)Instantiate (tailPrefab, tailSpawnPosition, Quaternion.identity);
+			tailSpawnObject.transform.parent = movingField.transform;
 			tailTransform.Add (tailSpawnObject.transform);
 
 			GameObject.Destroy (tempDigestObject);
 		}
+	}
+
+	public void spawnStages(){
+		prefabsToRand.Clear ();
+
+		for (int i = 0; i < stageTemplates.Length; i++) {
+			//check distance condition (-1 for endless distance max)
+			if (distance>=stageTemplates[i].distanceMin && 
+				(distance<=stageTemplates[i].distanceMax || stageTemplates[i].distanceMax<0)) {
+				//put all prefabs to list
+				for (int j = 0; j < stageTemplates[i].stage_prefabs.Length; j++) {
+					prefabsToRand.Add (stageTemplates [i].stage_prefabs [j]);
+				}
+			
+			}
+		}
+
+		selectedPrefab = prefabsToRand [Random.Range (0, prefabsToRand.Count)];
+
+		selectedPrefabHeight = selectedPrefab.GetComponent<SpriteRenderer> ().sprite.bounds.extents.y * selectedPrefab.transform.localScale.y;
+		recentStageHeight = recentStageObject.GetComponent<SpriteRenderer> ().sprite.bounds.extents.y * recentStageObject.transform.localScale.y;
+		spawnPosition = recentStageObject.transform.position;
+		spawnPosition.y = spawnPosition.y + (recentStageHeight + selectedPrefabHeight);
+		recentStageObject = (GameObject)Instantiate (selectedPrefab, spawnPosition, Quaternion.identity);
+		recentStageObject.transform.parent = movingField.transform;
 	}
 
 

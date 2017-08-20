@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Head_Script : MonoBehaviour {
+public class DestroyLine_Script : MonoBehaviour {
 	private Game_Script game;
 
 	void Start(){
@@ -9,12 +9,10 @@ public class Head_Script : MonoBehaviour {
 	}
 
 	void OnTriggerEnter2D(Collider2D coll){
-		if (coll.name.StartsWith ("Food")) {
+		if (coll.name.StartsWith ("Stage")) {
 			//eating
-			game.eat ();
+			game.spawnStages();
 			Destroy (coll.gameObject);
-		} else if (!coll.name.StartsWith("Stage")) {
-		//gameover	
 		}
 	}
 }
