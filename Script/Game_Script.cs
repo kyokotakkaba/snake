@@ -6,6 +6,7 @@ public class Game_Script : MonoBehaviour {
 	//UI object
 	private GameObject menuUI;
 	private GameObject playUI;
+	private GameObject gameoverUI;
 	//moving field
 	private GameObject movingField;
 	private Vector2 movingFieldPosition;
@@ -66,7 +67,9 @@ public class Game_Script : MonoBehaviour {
 		//UI
 		menuUI = GameObject.Find ("MainMenu");
 		playUI = GameObject.Find ("GamePlay");
+		gameoverUI = GameObject.Find ("GameOver");
 		playUI.SetActive (false);
+		gameoverUI.SetActive (false);
 
 		//moving field
 		movingField = GameObject.Find("MovingField");
