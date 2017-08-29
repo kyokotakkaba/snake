@@ -1,12 +1,19 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.UI;
 
 public class Game_Script : MonoBehaviour {
 	//UI object
 	private GameObject menuUI;
 	private GameObject playUI;
 	private GameObject gameoverUI;
+
+	//Scoring UI
+	private Text currentScoreText;
+	private Text scoreText;
+	private Text bestscoreText;
+
 	//moving field
 	private GameObject movingField;
 	private Vector2 movingFieldPosition;
@@ -39,7 +46,7 @@ public class Game_Script : MonoBehaviour {
 	private Queue<GameObject> digestObject;
 	private GameObject tempDigestObject;
 
-	//endless stages spawn
+	//stages
 	public Stage_Templates[] stageTemplates;
 	public int stagesInitialCount;
 	private GameObject recentStageObject;
@@ -53,12 +60,28 @@ public class Game_Script : MonoBehaviour {
 
 	//speed and delay
 	public float snakeSpeed;
+	private float currentSnakeSpeed;
+	public float speedIncrement;
+	private float currentSpeedIncrement;
+	public float incrementReducer;
 	private float lastMoveTime;
 
 	private bool isPlaying;
+	private bool clicked;
 
 	private Vector2 direction;
 	private Vector2 tempDirection; //to Avoid multiple direction change on delay
+
+	//scoring
+	private int score;
+	private int bestscore;
+
+	//restart initial parameter
+	private Vector2 movingFieldInitialPosition;
+	private Vector2 headInitialPosition;
+	private Quaternion headInitialRotation;
+	private Vector2 shadowInitialPosition;
+	public GameObject stageInitialPrefab;
 
 
 
@@ -68,6 +91,11 @@ public class Game_Script : MonoBehaviour {
 		menuUI = GameObject.Find ("MainMenu");
 		playUI = GameObject.Find ("GamePlay");
 		gameoverUI = GameObject.Find ("GameOver");
+
+		currentScoreText = GameObject.Find ("CurrentScore").GetComponent<Text>();
+		scoreText = GameObject.Find ("Score").GetComponent<Text>();
+		bestscoreText = GameObject.Find ("BestScore").GetComponent<Text>();
+
 		playUI.SetActive (false);
 		gameoverUI.SetActive (false);
 
@@ -94,6 +122,8 @@ public class Game_Script : MonoBehaviour {
 		lastMoveTime = 0f; //initialize only
 
 		isPlaying = false;
+		clicked = false;
+
 		direction = Vector2.up;
 		tempDirection = Vector2.up;
 
@@ -118,6 +148,22 @@ public class Game_Script : MonoBehaviour {
 			spawnStages ();
 		}
 
+		//speed
+		currentSnakeSpeed = snakeSpeed;
+		currentSpeedIncrement = speedIncrement;
+
+		//score
+		score = 0;
+		bestscore = PlayerPrefs.GetInt("bestscore",0);
+
+
+		//restart initial parameter
+		movingFieldInitialPosition = movingField.transform.position;
+		headInitialPosition = head.transform.position;
+		headInitialRotation = head.transform.rotation;
+		shadowInitialPosition = headShadow.transform.position;
+
+
 	}
 	
 	// Update is called once per frame
@@ -127,7 +173,7 @@ public class Game_Script : MonoBehaviour {
 		if (isPlaying) {
 			if (Time.time >= lastMoveTime) {
 				
-				lastMoveTime = Time.time + snakeSpeed; //refresh rapid fire
+				lastMoveTime = Time.time + currentSnakeSpeed; //refresh rapid fire
 				direction = tempDirection; //assign direction
 				Digesting ();
 				Move ();
@@ -138,6 +184,8 @@ public class Game_Script : MonoBehaviour {
 	}
 
 	private void Move(){
+		clicked = false;
+
 		//rotate head sprite
 		head.transform.Rotate(headRotate);
 		headRotate.z = 0;
@@ -163,6 +211,8 @@ public class Game_Script : MonoBehaviour {
 			movingFieldPosition.y = movingFieldPosition.y - (direction.y * headSize.y);
 			movingField.transform.position = movingFieldPosition;
 			distance++;
+			currentSnakeSpeed = currentSnakeSpeed / (1 + currentSpeedIncrement / 1000);
+			currentSpeedIncrement = currentSpeedIncrement / (1 + incrementReducer / 1000);
 		}
 
 	}
@@ -171,6 +221,10 @@ public class Game_Script : MonoBehaviour {
 		tempDigestObject = (GameObject)Instantiate (digestPrefab, head.transform.position, Quaternion.identity);
 		tempDigestObject.transform.parent = movingField.transform;
 		digestObject.Enqueue(tempDigestObject);
+
+		//adding score
+		score++;
+		currentScoreText.text = "" + score;
 	}
 
 	private void Digesting(){
@@ -215,39 +269,119 @@ public class Game_Script : MonoBehaviour {
 		recentStageObject.transform.parent = movingField.transform;
 	}
 
+	public void Gameover(){
+		if (isPlaying) {
+			isPlaying = false;
+			playUI.SetActive (false);
+			gameoverUI.SetActive (true);
+
+			scoreText.text = "" + score;
+			bestscoreText.text = "" + bestscore;
+			if (score>bestscore) {
+				PlayerPrefs.SetInt("bestscore", score);
+				bestscore = score;
+			}
+		}
+	}
+
 
 	public void clickStart(){
 		menuUI.SetActive (false);
 		playUI.SetActive (true);
+		currentScoreText.text = "" + score;
 		isPlaying = true;
 		lastMoveTime = Time.time + snakeSpeed;
 	}
 
 	public void clickLeftControl(){
-		headRotate.z = 90;
+		if (!clicked) {
+			headRotate.z = 90;
 
-		if (direction == Vector2.up) {
-			tempDirection = Vector2.left;
-		} else if (direction == Vector2.left) {
-			tempDirection  = Vector2.down;
-		} else if (direction == Vector2.down) {
-			tempDirection  = Vector2.right;
-		} else if (direction == Vector2.right) {
-			tempDirection  = Vector2.up;
+			if (direction == Vector2.up) {
+				tempDirection = Vector2.left;
+			} else if (direction == Vector2.left) {
+				tempDirection  = Vector2.down;
+			} else if (direction == Vector2.down) {
+				tempDirection  = Vector2.right;
+			} else if (direction == Vector2.right) {
+				tempDirection  = Vector2.up;
+			}
+
+			clicked = true;
 		}
 	}
 
 	public void clickRightControl(){
-		headRotate.z = -90;
+		if (!clicked) {
+			headRotate.z = -90;
 
-		if (direction == Vector2.up) {
-			tempDirection  = Vector2.right;
-		} else if (direction == Vector2.right) {
-			tempDirection  = Vector2.down;
-		} else if (direction == Vector2.down) {
-			tempDirection  = Vector2.left;
-		} else if (direction == Vector2.left) {
-			tempDirection  = Vector2.up;
+			if (direction == Vector2.up) {
+				tempDirection  = Vector2.right;
+			} else if (direction == Vector2.right) {
+				tempDirection  = Vector2.down;
+			} else if (direction == Vector2.down) {
+				tempDirection  = Vector2.left;
+			} else if (direction == Vector2.left) {
+				tempDirection  = Vector2.up;
+			}
+
+			clicked = true;
 		}
+	}
+
+	public void clickRestart(){
+
+		//destroy all stage and tail
+		GameObject[] clones = GameObject.FindGameObjectsWithTag("Clone");
+		foreach (GameObject clone in clones) {
+			GameObject.Destroy(clone);
+		}
+
+		//return head to initial position
+		movingField.transform.position = movingFieldInitialPosition;
+		head.transform.position = headInitialPosition;
+		head.transform.rotation = headInitialRotation;
+		headShadow.transform.position = shadowInitialPosition;
+
+		//instantiate stage 0
+		recentStageObject = (GameObject)Instantiate (stageInitialPrefab);
+		recentStageObject.transform.parent = movingField.transform;
+
+		//reset UI
+		playUI.SetActive (false);
+		gameoverUI.SetActive (false);
+
+		//reset parameter
+		movingFieldPosition = movingField.transform.position;
+		distance = 0;
+		headRotate.z = 0;
+		isPlaying = false;
+		clicked = false;
+		direction = Vector2.up;
+		tempDirection = Vector2.up;
+		score = 0;
+		currentSnakeSpeed = snakeSpeed;
+		currentSpeedIncrement = speedIncrement;
+
+		//tail initial spawn
+		tailTransform.Clear();
+		tailSpawnPosition = new Vector2(head.transform.position.x,head.transform.position.y - headSize.y);
+		for (int i = 0; i < tailInitialCount; i++) {
+			tailSpawnObject = (GameObject)Instantiate (tailPrefab, tailSpawnPosition, Quaternion.identity);
+			tailSpawnObject.transform.parent = movingField.transform;
+			tailTransform.Add (tailSpawnObject.transform);
+			tailSpawnPosition.y = tailSpawnPosition.y - headSize.y;
+		}
+
+		//digest
+		digestObject.Clear();
+
+
+		//stages inital spawn
+		for (int i = 0; i < stagesInitialCount; i++) {
+			spawnStages ();
+		}
+
+		clickStart ();
 	}
 }

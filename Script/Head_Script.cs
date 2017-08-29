@@ -14,7 +14,9 @@ public class Head_Script : MonoBehaviour {
 			game.eat ();
 			Destroy (coll.gameObject);
 		} else if (!coll.name.StartsWith("Stage")) {
-		//gameover	
+			//gameover
+			game.Gameover();
+			print (coll.name);
 		}
 	}
 }
