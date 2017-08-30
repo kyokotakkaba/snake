@@ -20,8 +20,6 @@ public class Game_Data : MonoBehaviour {
 	void Start () {
 		SEaudioSource = this.gameObject.AddComponent<AudioSource> ();
 		GameObject.Find ("splash").GetComponent<Image> ().sprite = splashImage;
-		PlayerPrefs.SetString ("selectedStage", "");
-		PlayerPrefs.SetString ("lastLevel", "");
 		//SaveLoad.Store (gameObject);
 		BGMisPlayed = false;
 	}
