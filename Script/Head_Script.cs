@@ -16,7 +16,6 @@ public class Head_Script : MonoBehaviour {
 		} else if (!coll.name.StartsWith("Stage")) {
 			//gameover
 			game.Gameover();
-			print (coll.name);
 		}
 	}
 }
