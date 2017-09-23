@@ -12,6 +12,11 @@ public class Game_Script : MonoBehaviour {
 	private GameObject pauseUI;
 	private GameObject quitUI;
 
+	//camera
+	private Camera cameraView;
+	private float InitialOrthographicSize;
+	public float zoomOutSpeed;
+
 	//Scoring UI
 	private Text currentScoreText;
 	private Text scoreText;
@@ -98,6 +103,10 @@ public class Game_Script : MonoBehaviour {
 		pauseUI = GameObject.Find ("Pause");
 		quitUI = GameObject.Find ("Quit");
 
+		//Camera
+		cameraView = GameObject.Find ("Camera").GetComponent<Camera>();
+		InitialOrthographicSize = cameraView.orthographicSize;
+
 		currentScoreText = GameObject.Find ("CurrentScore").GetComponent<Text>();
 		scoreText = GameObject.Find ("Score").GetComponent<Text>();
 		bestscoreText = GameObject.Find ("BestScore").GetComponent<Text>();
@@ -179,6 +188,12 @@ public class Game_Script : MonoBehaviour {
 
 
 		if (isPlaying) {
+
+			if (cameraView.orthographicSize < 5) {
+				cameraView.orthographicSize += Time.deltaTime * zoomOutSpeed;
+			}else if (cameraView.orthographicSize > 5.1) {
+				cameraView.orthographicSize -= Time.deltaTime;
+			}
 			
 			//if back button pressed, pause game
 			if (Input.GetKeyDown (KeyCode.Escape)) {
@@ -497,6 +512,7 @@ public class Game_Script : MonoBehaviour {
 	public void clickExit(){
 		menuUI.SetActive (true);
 		pauseUI.SetActive (false);
+		cameraView.orthographicSize = InitialOrthographicSize;
 		refresh ();
 	}
 
