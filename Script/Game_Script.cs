@@ -5,6 +5,15 @@ using UnityEngine.UI;
 using System.IO;
 
 public class Game_Script : MonoBehaviour {
+	//Audio
+	public AudioClip BGM;
+	public AudioClip selectSound;
+	public AudioClip eatSound;
+	public AudioClip moveSound;
+	public AudioClip deathSound;
+	private AudioSource SEaudioSource;
+
+
 	//UI object
 	private GameObject menuUI;
 	private GameObject playUI;
@@ -96,6 +105,10 @@ public class Game_Script : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+		//audio
+		SEaudioSource = this.gameObject.AddComponent<AudioSource> ();
+
+
 		//UI
 		menuUI = GameObject.Find ("MainMenu");
 		playUI = GameObject.Find ("GamePlay");
