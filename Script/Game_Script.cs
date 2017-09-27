@@ -6,7 +6,6 @@ using System.IO;
 
 public class Game_Script : MonoBehaviour {
 	//Audio
-	public AudioClip BGM;
 	public AudioClip selectSound;
 	public AudioClip eatSound;
 	public AudioClip moveSound;
