@@ -8,13 +8,19 @@ public class Game_Script : MonoBehaviour {
 	//Audio
 	public AudioClip selectSound;
 	public AudioClip eatSound;
-	public AudioClip moveSound;
+	public AudioClip rotateSound;
 	public AudioClip deathSound;
+	private AudioSource BGMaudioSource;
 	private AudioSource SEaudioSource;
+	//mute
+	private GameObject muteONButton;
+	private GameObject muteOFFButton;
+	private int muteState;
 
 
 	//UI object
 	private GameObject menuUI;
+	private GameObject howtoUI;
 	private GameObject playUI;
 	private GameObject gameoverUI;
 	private GameObject pauseUI;
@@ -105,11 +111,24 @@ public class Game_Script : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		//audio
+		BGMaudioSource = this.GetComponent<AudioSource>();
 		SEaudioSource = this.gameObject.AddComponent<AudioSource> ();
+		//mute
+		muteONButton = GameObject.Find ("MuteON");
+		muteOFFButton = GameObject.Find ("MuteOFF");
+		muteState = PlayerPrefs.GetInt("mutestate",0);
+		if (muteState > 0) {
+			muteONButton.SetActive (false);
+			//BGMaudioSource.Stop ();
+		} else {
+			muteOFFButton.SetActive (false);
+			BGMaudioSource.Play ();
+		}
 
 
 		//UI
 		menuUI = GameObject.Find ("MainMenu");
+		howtoUI = GameObject.Find ("HowTo");
 		playUI = GameObject.Find ("GamePlay");
 		gameoverUI = GameObject.Find ("GameOver");
 		pauseUI = GameObject.Find ("Pause");
@@ -123,6 +142,7 @@ public class Game_Script : MonoBehaviour {
 		scoreText = GameObject.Find ("Score").GetComponent<Text>();
 		bestscoreText = GameObject.Find ("BestScore").GetComponent<Text>();
 
+		howtoUI.SetActive (false);
 		playUI.SetActive (false);
 		gameoverUI.SetActive (false);
 		pauseUI.SetActive (false);
@@ -241,6 +261,7 @@ public class Game_Script : MonoBehaviour {
 
 		//rotate head sprite
 		if (tempRotate.Count>0) {
+			SEaudioSource.PlayOneShot (rotateSound, 0.6f);
 			headRotate.z = tempRotate.Dequeue();
 		}
 		head.transform.Rotate(headRotate);
@@ -274,6 +295,8 @@ public class Game_Script : MonoBehaviour {
 	}
 
 	public void eat(){
+		SEaudioSource.PlayOneShot (eatSound, 0.6f);
+
 		tempDigestObject = (GameObject)Instantiate (digestPrefab, head.transform.position, Quaternion.identity);
 		tempDigestObject.transform.parent = movingField.transform;
 		digestObject.Enqueue(tempDigestObject);
@@ -327,6 +350,8 @@ public class Game_Script : MonoBehaviour {
 
 	private void Pause(){
 		if (isPlaying) {
+			playSelectSound ();
+
 			isPlaying = false;
 			pauseUI.SetActive (true);
 		}
@@ -334,6 +359,8 @@ public class Game_Script : MonoBehaviour {
 
 	public void clickResume(){
 		if (!isPlaying) {
+			playSelectSound ();
+
 			isPlaying = true;
 			pauseUI.SetActive (false);
 		}
@@ -342,6 +369,7 @@ public class Game_Script : MonoBehaviour {
 
 	public void Gameover(){
 		if (isPlaying) {
+			SEaudioSource.PlayOneShot (deathSound, 0.6f);
 			isPlaying = false;
 			playUI.SetActive (false);
 			gameoverUI.SetActive (true);
@@ -358,6 +386,9 @@ public class Game_Script : MonoBehaviour {
 
 
 	public void clickStart(){
+		playSelectSound ();
+
+
 		menuUI.SetActive (false);
 		playUI.SetActive (true);
 		currentScoreText.text = "" + score;
@@ -470,6 +501,7 @@ public class Game_Script : MonoBehaviour {
 
 
 	public void clickRestart(){
+		playSelectSound ();
 
 		refresh ();
 
@@ -518,10 +550,12 @@ public class Game_Script : MonoBehaviour {
 	}
 
 	public void clickShare(){
+		playSelectSound ();
 		StartCoroutine (screenshotAndShare ());
 	}
 
 	public void clickExit(){
+		playSelectSound ();
 		menuUI.SetActive (true);
 		pauseUI.SetActive (false);
 		cameraView.orthographicSize = InitialOrthographicSize;
@@ -529,10 +563,41 @@ public class Game_Script : MonoBehaviour {
 	}
 
 	public void clickQuit(){
+		playSelectSound ();
 		Application.Quit();
 	}
 
 	public void clickCancelQuit(){
+		playSelectSound ();
 		quitUI.SetActive (false);
+	}
+
+	public void clickHowTo(){
+		playSelectSound ();
+		howtoUI.SetActive (true);
+	}
+
+	public void clickCloseHowTo(){
+		playSelectSound ();
+		howtoUI.SetActive (false);
+	}
+
+	public void clickMute(){
+		if (muteState > 0) {
+			muteOFFButton.SetActive (false);
+			muteONButton.SetActive (true);
+			BGMaudioSource.Play ();
+			muteState = 0;
+		} else {
+			muteONButton.SetActive (false);
+			muteOFFButton.SetActive (true);
+			BGMaudioSource.Stop ();
+			muteState = 1;
+		}
+		PlayerPrefs.SetInt("mutestate", muteState);
+	}
+
+	private void playSelectSound(){
+		SEaudioSource.PlayOneShot (selectSound, 0.6f);
 	}
 }
