@@ -82,9 +82,9 @@ public class Game_Script : MonoBehaviour {
 
 	//speed and delay
 	public float snakeSpeed;
-	public float currentSnakeSpeed;
+	private float currentSnakeSpeed;
 	public float speedIncrement;
-	public float currentSpeedIncrement;
+	private float currentSpeedIncrement;
 	public float incrementReducer;
 	private float lastMoveTime;
 
