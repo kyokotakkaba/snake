@@ -42,6 +42,13 @@ public class Game_Script : MonoBehaviour {
 	private float movingLine;
 	private int distance;
 
+	//moving spike
+	private GameObject borderBottom;
+	private Vector2 spikeInitialPosition;
+	private Vector2 spikePosition;
+	public float spikeSpeed;
+	public float spikeRestoreSpeed;
+
 	//Head
 	private GameObject head;
 	private Sprite headSprite;
@@ -82,9 +89,9 @@ public class Game_Script : MonoBehaviour {
 
 	//speed and delay
 	public float snakeSpeed;
-	private float currentSnakeSpeed;
+	public float currentSnakeSpeed;
 	public float speedIncrement;
-	private float currentSpeedIncrement;
+	public float currentSpeedIncrement;
 	public float incrementReducer;
 	private float lastMoveTime;
 
@@ -153,6 +160,11 @@ public class Game_Script : MonoBehaviour {
 		movingFieldPosition = movingField.transform.position;
 		distance = 0;
 		movingLine = GameObject.Find ("MovingLine").transform.position.y;
+
+		//moving spike
+		borderBottom = GameObject.Find("BorderBottom");
+		spikeInitialPosition = borderBottom.transform.position;
+		spikePosition = spikeInitialPosition;
 
 		//Head dimension
 		head = GameObject.Find ("Head");
@@ -290,6 +302,17 @@ public class Game_Script : MonoBehaviour {
 			distance++;
 			currentSnakeSpeed = currentSnakeSpeed / (1 + currentSpeedIncrement / 1000);
 			currentSpeedIncrement = currentSpeedIncrement / (1 + incrementReducer / 1000);
+
+
+			//restore spike
+			if (spikePosition.y>spikeInitialPosition.y) {
+				spikePosition.y = spikePosition.y - (headSize.y * spikeSpeed * spikeRestoreSpeed);
+				borderBottom.transform.position = spikePosition;
+			}
+		}else{
+			//move spike
+			spikePosition.y = spikePosition.y + (headSize.y * spikeSpeed);
+			borderBottom.transform.position = spikePosition;
 		}
 
 	}
@@ -454,11 +477,13 @@ public class Game_Script : MonoBehaviour {
 			GameObject.Destroy(clone);
 		}
 
-		//return head to initial position
+		//return to initial position
 		movingField.transform.position = movingFieldInitialPosition;
+		spikePosition = spikeInitialPosition;
 		head.transform.position = headInitialPosition;
 		head.transform.rotation = headInitialRotation;
 		headShadow.transform.position = shadowInitialPosition;
+
 
 		//instantiate stage 0
 		recentStageObject = (GameObject)Instantiate (stageInitialPrefab);
