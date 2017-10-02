@@ -397,13 +397,13 @@ public class Game_Script : MonoBehaviour {
 			playUI.SetActive (false);
 			gameoverUI.SetActive (true);
 			pauseUI.SetActive (false);
-
-			scoreText.text = "" + score;
-			bestscoreText.text = "" + bestscore;
 			if (score>bestscore) {
 				PlayerPrefs.SetInt("bestscore", score);
 				bestscore = score;
 			}
+			scoreText.text = "" + score;
+			bestscoreText.text = "" + bestscore;
+
 		}
 	}
 
@@ -479,7 +479,10 @@ public class Game_Script : MonoBehaviour {
 
 		//return to initial position
 		movingField.transform.position = movingFieldInitialPosition;
+
 		spikePosition = spikeInitialPosition;
+		borderBottom.transform.position = spikePosition;
+
 		head.transform.position = headInitialPosition;
 		head.transform.rotation = headInitialRotation;
 		headShadow.transform.position = shadowInitialPosition;
