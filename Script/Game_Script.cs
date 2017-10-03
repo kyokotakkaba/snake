@@ -35,6 +35,7 @@ public class Game_Script : MonoBehaviour {
 	private Text currentScoreText;
 	private Text scoreText;
 	private Text bestscoreText;
+	private Text newBestScoreText;
 
 	//moving field
 	private GameObject movingField;
@@ -44,7 +45,6 @@ public class Game_Script : MonoBehaviour {
 
 	//moving spike
 	private GameObject borderBottom;
-	private Vector2 spikeInitialPosition;
 	private Vector2 spikePosition;
 	public float spikeSpeed;
 	public float spikeRestoreSpeed;
@@ -108,6 +108,7 @@ public class Game_Script : MonoBehaviour {
 
 	//restart initial parameter
 	private Vector2 movingFieldInitialPosition;
+	private Vector2 spikeInitialPosition;
 	private Vector2 headInitialPosition;
 	private Quaternion headInitialRotation;
 	private Vector2 shadowInitialPosition;
@@ -148,6 +149,7 @@ public class Game_Script : MonoBehaviour {
 		currentScoreText = GameObject.Find ("CurrentScore").GetComponent<Text>();
 		scoreText = GameObject.Find ("Score").GetComponent<Text>();
 		bestscoreText = GameObject.Find ("BestScore").GetComponent<Text>();
+		newBestScoreText = GameObject.Find ("NewBestScoreLabel").GetComponent<Text>();
 
 		howtoUI.SetActive (false);
 		playUI.SetActive (false);
@@ -397,9 +399,11 @@ public class Game_Script : MonoBehaviour {
 			playUI.SetActive (false);
 			gameoverUI.SetActive (true);
 			pauseUI.SetActive (false);
+			newBestScoreText.text = "";
 			if (score>bestscore) {
 				PlayerPrefs.SetInt("bestscore", score);
 				bestscore = score;
+				newBestScoreText.text = "NEW!";
 			}
 			scoreText.text = "" + score;
 			bestscoreText.text = "" + bestscore;
@@ -428,8 +432,6 @@ public class Game_Script : MonoBehaviour {
 			lastDirection = direction;
 		}
 
-		print (lastDirection);
-
 		if (lastDirection == Vector2.up) {
 			lastDirection = Vector2.left;
 		} else if (lastDirection == Vector2.left) {
@@ -453,8 +455,6 @@ public class Game_Script : MonoBehaviour {
 		if (tempDirection.Count <= 0) {
 			lastDirection = direction;
 		}
-
-		print (lastDirection);
 
 		if (lastDirection == Vector2.up) {
 			lastDirection = Vector2.right;
@@ -503,6 +503,7 @@ public class Game_Script : MonoBehaviour {
 		isPlaying = false;
 		direction = Vector2.up;
 		tempDirection.Clear();
+		tempRotate.Clear ();
 		score = 0;
 		currentSnakeSpeed = snakeSpeed;
 		currentSpeedIncrement = speedIncrement;
