@@ -5,6 +5,9 @@ using UnityEngine.UI;
 using System.IO;
 
 public class Game_Script : MonoBehaviour {
+	//ads component
+	private Ads ads;
+
 	//Audio
 	public AudioClip selectSound;
 	public AudioClip eatSound;
@@ -118,6 +121,8 @@ public class Game_Script : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+		ads = this.GetComponent<Ads> ();
+
 		//audio
 		BGMaudioSource = this.GetComponent<AudioSource>();
 		SEaudioSource = this.gameObject.AddComponent<AudioSource> ();
@@ -408,6 +413,8 @@ public class Game_Script : MonoBehaviour {
 			scoreText.text = "" + score;
 			bestscoreText.text = "" + bestscore;
 
+
+			ads.addInterstitialCounter ();
 		}
 	}
 
