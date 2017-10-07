@@ -17,8 +17,12 @@ public class Ads : MonoBehaviour {
 	public int interstitialShowAfter;
 	private int interstitialCounter;
 
+
+	//specific script for video ads handler
+	private Game_Script gameScript;
+
 	void Start () {
-		bannerID = "ca-app-pub-3940256099942544/6300978111";
+		//bannerID = "ca-app-pub-3940256099942544/6300978111";
 		interstitialID = "ca-app-pub-3940256099942544/1033173712";
 		rewardVideoID = "ca-app-pub-3940256099942544/5224354917";
 
@@ -29,9 +33,15 @@ public class Ads : MonoBehaviour {
 
 		rewardVideo = RewardBasedVideoAd.Instance;
 		rewardVideo.OnAdClosed += HandleOnAdClosed;
+		rewardVideo.OnAdRewarded += HandleRewardBasedVideoRewarded;
 		RequestRewardVideo ();
+
+		//specific script for video ads handler
+		gameScript = this.GetComponent<Game_Script>();
+
 	}
 
+	/*
 	public void showBannerBottom(){
 		string adUnitId = bannerID;
 
@@ -70,6 +80,7 @@ public class Ads : MonoBehaviour {
 		}
 
 	}
+	*/
 
 	private void RequestInterstitial(){
 		if (interstitial != null) {
@@ -119,6 +130,12 @@ public class Ads : MonoBehaviour {
 
 	public void HandleOnAdClosed(object sender, System.EventArgs args){
 		RequestRewardVideo ();
+	}
+
+	public void HandleRewardBasedVideoRewarded(object sender, Reward args)
+	{
+		//specific script
+		gameScript.refreshRevive();
 	}
 
 }

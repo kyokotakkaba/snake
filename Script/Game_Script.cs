@@ -20,14 +20,24 @@ public class Game_Script : MonoBehaviour {
 	private GameObject muteOFFButton;
 	private int muteState;
 
+	//revive
+	private GameObject reviveButton;
+	private GameObject reviveDisableButton;
+	private bool reviveState;
+	private GameObject startReviveUI;
 
 	//UI object
 	private GameObject menuUI;
 	private GameObject howtoUI;
 	private GameObject playUI;
 	private GameObject gameoverUI;
+	private GameObject reviveUI;
 	private GameObject pauseUI;
 	private GameObject quitUI;
+
+
+
+
 
 	//camera
 	private Camera cameraView;
@@ -115,7 +125,9 @@ public class Game_Script : MonoBehaviour {
 	private Vector2 headInitialPosition;
 	private Quaternion headInitialRotation;
 	private Vector2 shadowInitialPosition;
+
 	public GameObject stageInitialPrefab;
+	public GameObject stageRevivePrefab;
 
 
 
@@ -139,6 +151,15 @@ public class Game_Script : MonoBehaviour {
 		}
 
 
+		//revive
+		reviveButton = GameObject.Find ("Revive");
+		reviveDisableButton = GameObject.Find ("ReviveDisabled");
+		reviveDisableButton.SetActive (false);
+		reviveState = false;
+		startReviveUI = GameObject.Find ("StartRevive");
+		startReviveUI.SetActive (false);
+
+
 		//UI
 		menuUI = GameObject.Find ("MainMenu");
 		howtoUI = GameObject.Find ("HowTo");
@@ -146,6 +167,8 @@ public class Game_Script : MonoBehaviour {
 		gameoverUI = GameObject.Find ("GameOver");
 		pauseUI = GameObject.Find ("Pause");
 		quitUI = GameObject.Find ("Quit");
+
+
 
 		//Camera
 		cameraView = GameObject.Find ("Camera").GetComponent<Camera>();
@@ -404,6 +427,16 @@ public class Game_Script : MonoBehaviour {
 			playUI.SetActive (false);
 			gameoverUI.SetActive (true);
 			pauseUI.SetActive (false);
+
+			if (reviveState) {
+				reviveButton.SetActive (false);
+				reviveDisableButton.SetActive (true);
+			} else {
+				reviveButton.SetActive (true);
+				reviveDisableButton.SetActive (false);
+			}
+
+
 			newBestScoreText.text = "";
 			if (score>bestscore) {
 				PlayerPrefs.SetInt("bestscore", score);
@@ -514,6 +547,7 @@ public class Game_Script : MonoBehaviour {
 		score = 0;
 		currentSnakeSpeed = snakeSpeed;
 		currentSpeedIncrement = speedIncrement;
+		reviveState = false;
 
 		//tail initial spawn
 		tailTransform.Clear();
@@ -535,13 +569,79 @@ public class Game_Script : MonoBehaviour {
 		}
 	}
 
+	public void refreshRevive(){
+		//destroy all stage and tail
+		GameObject[] clones = GameObject.FindGameObjectsWithTag("Clone");
+		foreach (GameObject clone in clones) {
+			GameObject.Destroy(clone);
+		}
+
+		//return to initial position
+		movingField.transform.position = movingFieldInitialPosition;
+
+		spikePosition = spikeInitialPosition;
+		borderBottom.transform.position = spikePosition;
+
+		head.transform.position = headInitialPosition;
+		head.transform.rotation = headInitialRotation;
+		headShadow.transform.position = shadowInitialPosition;
+
+
+		//instantiate stage 0
+		recentStageObject = (GameObject)Instantiate (stageRevivePrefab);
+		recentStageObject.transform.parent = movingField.transform;
+
+		//reset UI
+		playUI.SetActive (true);
+		gameoverUI.SetActive (false);
+
+		//reset parameter
+		movingFieldPosition = movingField.transform.position;
+		headRotate.z = 0;
+		isPlaying = false;
+		direction = Vector2.up;
+		tempDirection.Clear();
+		tempRotate.Clear ();
+		reviveState = true;
+
+		//tail initial spawn
+		int tailCount = tailTransform.Count;
+		tailTransform.Clear();
+		tailSpawnPosition = new Vector2(head.transform.position.x,head.transform.position.y - headSize.y);
+		for (int i = 0; i < tailCount; i++) {
+			tailSpawnObject = (GameObject)Instantiate (tailPrefab, tailSpawnPosition, Quaternion.identity);
+			tailSpawnObject.transform.parent = movingField.transform;
+			tailTransform.Add (tailSpawnObject.transform);
+			tailSpawnPosition.y = tailSpawnPosition.y - headSize.y;
+		}
+
+		//digest
+		digestObject.Clear();
+
+
+		//stages inital spawn
+		for (int i = 0; i < stagesInitialCount; i++) {
+			spawnStages ();
+		}
+
+		startReviveUI.SetActive (true);
+	}
+
 
 	public void clickRestart(){
-		playSelectSound ();
 
 		refresh ();
 
 		clickStart ();
+	}
+
+	public void clickRevive(){
+		ads.showRewardVideo ();
+	}
+
+	public void clickStartRevive(){
+		clickStart ();
+		startReviveUI.SetActive (false);
 	}
 
 	public IEnumerator screenshotAndShare(){
