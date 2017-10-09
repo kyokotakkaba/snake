@@ -23,8 +23,11 @@ public class Ads : MonoBehaviour {
 
 	void Start () {
 		//bannerID = "ca-app-pub-3940256099942544/6300978111";
-		interstitialID = "ca-app-pub-3940256099942544/1033173712";
-		rewardVideoID = "ca-app-pub-3940256099942544/5224354917";
+		//interstitialID = "ca-app-pub-3940256099942544/1033173712";
+		//rewardVideoID = "ca-app-pub-3940256099942544/5224354917";
+
+		interstitialID = "ca-app-pub-8796483174280591/7677020838";
+		rewardVideoID = "ca-app-pub-8796483174280591/7181540275";
 
 		//bannerAdRequest = new AdRequest.Builder().Build();
 

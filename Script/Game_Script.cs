@@ -47,7 +47,7 @@ public class Game_Script : MonoBehaviour {
 	private Text currentScoreText;
 	private Text scoreText;
 	private Text bestscoreText;
-	private Text newBestScoreText;
+	private GameObject newBestScoreText;
 
 	//moving field
 	private GameObject movingField;
@@ -174,7 +174,7 @@ public class Game_Script : MonoBehaviour {
 		currentScoreText = GameObject.Find ("CurrentScore").GetComponent<Text>();
 		scoreText = GameObject.Find ("Score").GetComponent<Text>();
 		bestscoreText = GameObject.Find ("BestScore").GetComponent<Text>();
-		newBestScoreText = GameObject.Find ("NewBestScoreLabel").GetComponent<Text>();
+		newBestScoreText = GameObject.Find ("NewBestScoreLabel");
 
 		howtoUI.SetActive (false);
 		playUI.SetActive (false);
@@ -286,10 +286,14 @@ public class Game_Script : MonoBehaviour {
 		} else {
 			//quiting
 			if (Input.GetKeyDown (KeyCode.Escape)) {
-				if (!quitUI.activeSelf) {
-					quitUI.SetActive (true);
+				if (pauseUI.activeSelf) {
+					clickResume ();
+				} else if (gameoverUI.activeSelf) {
+					clickExit ();
+				} else if (quitUI.activeSelf) {
+					quitUI.SetActive (false);
 				} else {
-					clickCancelQuit();
+					quitUI.SetActive (true);
 				}
 
 			} 
@@ -432,11 +436,11 @@ public class Game_Script : MonoBehaviour {
 			}
 
 
-			newBestScoreText.text = "";
+			newBestScoreText.SetActive (false);
 			if (score>bestscore) {
 				PlayerPrefs.SetInt("bestscore", score);
 				bestscore = score;
-				newBestScoreText.text = "NEW!";
+				newBestScoreText.SetActive(true);
 			}
 			scoreText.text = "" + score;
 			bestscoreText.text = "" + bestscore;
