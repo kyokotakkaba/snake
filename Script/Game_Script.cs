@@ -22,7 +22,6 @@ public class Game_Script : MonoBehaviour {
 
 	//revive
 	private GameObject reviveButton;
-	private GameObject reviveDisableButton;
 	private bool reviveState;
 	private GameObject startReviveUI;
 
@@ -153,8 +152,6 @@ public class Game_Script : MonoBehaviour {
 
 		//revive
 		reviveButton = GameObject.Find ("Revive");
-		reviveDisableButton = GameObject.Find ("ReviveDisabled");
-		reviveDisableButton.SetActive (false);
 		reviveState = false;
 		startReviveUI = GameObject.Find ("StartRevive");
 		startReviveUI.SetActive (false);
@@ -266,12 +263,12 @@ public class Game_Script : MonoBehaviour {
 			if (cameraView.orthographicSize < 5) {
 				cameraView.orthographicSize += Time.deltaTime * zoomOutSpeed;
 			}else if (cameraView.orthographicSize > 5.1) {
-				cameraView.orthographicSize -= Time.deltaTime;
+				cameraView.orthographicSize -= Time.deltaTime*2;
 			}
 			
 			//if back button pressed, pause game
 			if (Input.GetKeyDown (KeyCode.Escape)) {
-				Pause ();
+				clickPause ();
 			} 
 
 			//call every snakeSpeed seconds
@@ -401,7 +398,7 @@ public class Game_Script : MonoBehaviour {
 		recentStageObject.transform.parent = movingField.transform;
 	}
 
-	private void Pause(){
+	public void clickPause(){
 		if (isPlaying) {
 			playSelectSound ();
 
@@ -430,10 +427,8 @@ public class Game_Script : MonoBehaviour {
 
 			if (reviveState) {
 				reviveButton.SetActive (false);
-				reviveDisableButton.SetActive (true);
 			} else {
 				reviveButton.SetActive (true);
-				reviveDisableButton.SetActive (false);
 			}
 
 
