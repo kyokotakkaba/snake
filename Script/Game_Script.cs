@@ -33,10 +33,7 @@ public class Game_Script : MonoBehaviour {
 	private GameObject reviveUI;
 	private GameObject pauseUI;
 	private GameObject quitUI;
-
-
-
-
+	private GameObject shopUI;
 
 	//camera
 	private Camera cameraView;
@@ -60,6 +57,13 @@ public class Game_Script : MonoBehaviour {
 	private Vector2 spikePosition;
 	public float spikeSpeed;
 	public float spikeRestoreSpeed;
+
+
+	//Characters
+	public Character_Templates[] characters;
+	public int selectedCharacter;
+
+
 
 	//Head
 	private GameObject head;
@@ -143,7 +147,7 @@ public class Game_Script : MonoBehaviour {
 		muteState = PlayerPrefs.GetInt("mutestate",0);
 		if (muteState > 0) {
 			muteONButton.SetActive (false);
-			//BGMaudioSource.Stop ();
+			//BGMaudioSource.Stop (); //No need because play on awake is false
 		} else {
 			muteOFFButton.SetActive (false);
 			BGMaudioSource.Play ();
@@ -164,6 +168,7 @@ public class Game_Script : MonoBehaviour {
 		gameoverUI = GameObject.Find ("GameOver");
 		pauseUI = GameObject.Find ("Pause");
 		quitUI = GameObject.Find ("Quit");
+		shopUI = GameObject.Find ("Shop");
 
 
 
@@ -181,6 +186,7 @@ public class Game_Script : MonoBehaviour {
 		gameoverUI.SetActive (false);
 		pauseUI.SetActive (false);
 		quitUI.SetActive (false);
+		shopUI.SetActive (false);
 
 		//moving field
 		movingField = GameObject.Find("MovingField");
@@ -192,6 +198,26 @@ public class Game_Script : MonoBehaviour {
 		borderBottom = GameObject.Find("BorderBottom");
 		spikeInitialPosition = borderBottom.transform.position;
 		spikePosition = spikeInitialPosition;
+
+		//character
+		selectedCharacter = PlayerPrefs.GetInt("selectedCharacter",0);
+		GameObject tempCharacterObject;
+		for (int i = 0; i < characters.Length; i++) {
+			tempCharacterObject = transform.Find ("Shop/Character" + i).gameObject;
+			tempCharacterObject.transform.Find ("Image").GetComponent<Image> ().sprite = characters [i].head;
+			if (selectedCharacter == i) {
+				tempCharacterObject.transform.Find ("UseButton").gameObject.SetActive (false);
+				tempCharacterObject.transform.Find ("Purchase").gameObject.SetActive (false);
+			} else if (characters [i].purchased) {
+				tempCharacterObject.transform.Find ("UsedLabel").gameObject.SetActive (false);
+				tempCharacterObject.transform.Find ("Purchase").gameObject.SetActive (false);
+			} else {
+				tempCharacterObject.transform.Find ("UsedLabel").gameObject.SetActive (false);
+				tempCharacterObject.transform.Find ("UseButton").gameObject.SetActive (false);
+				tempCharacterObject.transform.Find ("Purchase/Price").GetComponent<Text> ().text = ""+characters [i].price;
+			}
+		}
+
 
 		//Head dimension
 		head = GameObject.Find ("Head");
@@ -256,8 +282,6 @@ public class Game_Script : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-
-
 		if (isPlaying) {
 
 			if (cameraView.orthographicSize < 5) {
@@ -290,6 +314,8 @@ public class Game_Script : MonoBehaviour {
 					clickResume ();
 				} else if (gameoverUI.activeSelf) {
 					clickExit ();
+				} else if (shopUI.activeSelf) {
+					clickExitShop ();
 				} else if (quitUI.activeSelf) {
 					quitUI.SetActive (false);
 				} else {
@@ -452,14 +478,18 @@ public class Game_Script : MonoBehaviour {
 
 
 	public void clickStart(){
-		playSelectSound ();
+		if (PlayerPrefs.GetInt ("firstTime", 0) <= 0) {
+			PlayerPrefs.SetInt ("firstTime", 1);
+			clickHowTo ();
+		} else {
+			playSelectSound ();
+			menuUI.SetActive (false);
+			playUI.SetActive (true);
+			currentScoreText.text = "" + score;
+			isPlaying = true;
+			lastMoveTime = Time.time + snakeSpeed;
+		}
 
-
-		menuUI.SetActive (false);
-		playUI.SetActive (true);
-		currentScoreText.text = "" + score;
-		isPlaying = true;
-		lastMoveTime = Time.time + snakeSpeed;
 	}
 
 	public void clickLeftControl(){
@@ -713,8 +743,14 @@ public class Game_Script : MonoBehaviour {
 	}
 
 	public void clickCloseHowTo(){
-		playSelectSound ();
+		if (PlayerPrefs.GetInt ("firstTime", 0) == 1) {
+			clickStart ();
+		} else {
+			playSelectSound ();
+		}
+		PlayerPrefs.SetInt ("firstTime", 2);
 		howtoUI.SetActive (false);
+
 	}
 
 	public void clickMute(){
@@ -730,6 +766,16 @@ public class Game_Script : MonoBehaviour {
 			muteState = 1;
 		}
 		PlayerPrefs.SetInt("mutestate", muteState);
+	}
+
+	public void clickShop(){
+		playSelectSound ();
+		shopUI.SetActive (true);
+	}
+
+	public void clickExitShop(){
+		playSelectSound ();
+		shopUI.SetActive (false);
 	}
 
 	private void playSelectSound(){
