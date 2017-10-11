@@ -20,6 +20,7 @@ public class Ads : MonoBehaviour {
 
 	//specific script for video ads handler
 	private Game_Script gameScript;
+	private bool freeFoodReward;
 
 	void Start () {
 		//bannerID = "ca-app-pub-3940256099942544/6300978111";
@@ -41,6 +42,7 @@ public class Ads : MonoBehaviour {
 
 		//specific script for video ads handler
 		gameScript = this.GetComponent<Game_Script>();
+		freeFoodReward = false;
 
 	}
 
@@ -133,12 +135,25 @@ public class Ads : MonoBehaviour {
 
 	public void HandleOnAdClosed(object sender, System.EventArgs args){
 		RequestRewardVideo ();
+		freeFoodReward = false;
 	}
 
 	public void HandleRewardBasedVideoRewarded(object sender, Reward args)
 	{
 		//specific script
-		gameScript.refreshRevive();
+		if (freeFoodReward) {
+			freeFoodReward = false;
+			gameScript.adsFoodReward (30);
+		} else {
+			gameScript.refreshRevive();
+		}
+
+	}
+
+	public void startFreeFoodReward(){
+		freeFoodReward = true;
+		showRewardVideo ();
+
 	}
 
 }

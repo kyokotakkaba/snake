@@ -33,7 +33,10 @@ public class Game_Script : MonoBehaviour {
 	private GameObject reviveUI;
 	private GameObject pauseUI;
 	private GameObject quitUI;
+	//shop UI
 	private GameObject shopUI;
+	private GameObject notEnoughUI;
+	private GameObject afterAdsUI;
 
 	//camera
 	private Camera cameraView;
@@ -61,7 +64,12 @@ public class Game_Script : MonoBehaviour {
 
 	//Characters
 	public Character_Templates[] characters;
-	public int selectedCharacter;
+	private int selectedCharacter;
+	GameObject tempCharacterObject;
+
+	private int collectedFood;
+	private Text collectedFoodText;
+
 
 
 
@@ -169,6 +177,8 @@ public class Game_Script : MonoBehaviour {
 		pauseUI = GameObject.Find ("Pause");
 		quitUI = GameObject.Find ("Quit");
 		shopUI = GameObject.Find ("Shop");
+		notEnoughUI = GameObject.Find ("NotEnough");
+		afterAdsUI = GameObject.Find ("AfterAds");
 
 
 
@@ -186,7 +196,10 @@ public class Game_Script : MonoBehaviour {
 		gameoverUI.SetActive (false);
 		pauseUI.SetActive (false);
 		quitUI.SetActive (false);
+		//shop UI
 		shopUI.SetActive (false);
+		notEnoughUI.SetActive (false);
+		afterAdsUI.SetActive (false);
 
 		//moving field
 		movingField = GameObject.Find("MovingField");
@@ -199,10 +212,26 @@ public class Game_Script : MonoBehaviour {
 		spikeInitialPosition = borderBottom.transform.position;
 		spikePosition = spikeInitialPosition;
 
+
 		//character
+
+		//Collected Food
+		collectedFood = PlayerPrefs.GetInt("collectedFood",0);
+		collectedFoodText = transform.Find ("Shop/FoodImage/CollectedFood").GetComponent<Text>();
+		collectedFoodText.text = "X " + collectedFood;
+
 		selectedCharacter = PlayerPrefs.GetInt("selectedCharacter",0);
-		GameObject tempCharacterObject;
+		print ("selected:" + selectedCharacter);
 		for (int i = 0; i < characters.Length; i++) {
+
+			//get purchase Status database
+			if (i>0) {
+				if (PlayerPrefs.GetInt("purchaseCharacter"+i,0)>0) {
+					characters [i].purchased = true;
+				} 
+			}
+
+			//each Character in shop UI
 			tempCharacterObject = transform.Find ("Shop/Character" + i).gameObject;
 			tempCharacterObject.transform.Find ("Image").GetComponent<Image> ().sprite = characters [i].head;
 			if (selectedCharacter == i) {
@@ -222,6 +251,7 @@ public class Game_Script : MonoBehaviour {
 		//Head dimension
 		head = GameObject.Find ("Head");
 		headSprite = head.GetComponent<SpriteRenderer> ().sprite;
+		head.GetComponent<SpriteRenderer> ().sprite = characters [selectedCharacter].head;
 
 		//sprite width = bound x 2 x scale
 		headSize = new Vector2 (headSprite.bounds.extents.x * 2 * head.transform.localScale.x, headSprite.bounds.extents.y * 2 * head.transform.localScale.y);
@@ -246,6 +276,7 @@ public class Game_Script : MonoBehaviour {
 		tailSpawnPosition = new Vector2(head.transform.position.x,head.transform.position.y - headSize.y);
 		for (int i = 0; i < tailInitialCount; i++) {
 			tailSpawnObject = (GameObject)Instantiate (tailPrefab, tailSpawnPosition, Quaternion.identity);
+			tailSpawnObject.GetComponent<SpriteRenderer> ().sprite = characters [selectedCharacter].tail;
 			tailSpawnObject.transform.parent = movingField.transform;
 			tailTransform.Add (tailSpawnObject.transform);
 			tailSpawnPosition.y = tailSpawnPosition.y - headSize.y;
@@ -316,6 +347,8 @@ public class Game_Script : MonoBehaviour {
 					clickExit ();
 				} else if (shopUI.activeSelf) {
 					clickExitShop ();
+				}else if (notEnoughUI.activeSelf) {
+					clickExitNotEnough ();
 				} else if (quitUI.activeSelf) {
 					quitUI.SetActive (false);
 				} else {
@@ -378,6 +411,7 @@ public class Game_Script : MonoBehaviour {
 		SEaudioSource.PlayOneShot (eatSound, 0.6f);
 
 		tempDigestObject = (GameObject)Instantiate (digestPrefab, head.transform.position, Quaternion.identity);
+		tempDigestObject.GetComponent<SpriteRenderer> ().sprite = characters [selectedCharacter].digest;
 		tempDigestObject.transform.parent = movingField.transform;
 		digestObject.Enqueue(tempDigestObject);
 
@@ -396,6 +430,7 @@ public class Game_Script : MonoBehaviour {
 			//spawn tail
 			tailSpawnPosition = tempDigestObject.transform.position;
 			tailSpawnObject = (GameObject)Instantiate (tailPrefab, tailSpawnPosition, Quaternion.identity);
+			tailSpawnObject.GetComponent<SpriteRenderer> ().sprite = characters [selectedCharacter].tail;
 			tailSpawnObject.transform.parent = movingField.transform;
 			tailTransform.Add (tailSpawnObject.transform);
 
@@ -463,6 +498,13 @@ public class Game_Script : MonoBehaviour {
 
 
 			newBestScoreText.SetActive (false);
+
+			//collected food
+			collectedFood = collectedFood + score;
+			PlayerPrefs.SetInt ("collectedFood", collectedFood);
+			collectedFoodText.text = "X " + collectedFood;
+
+			//best score
 			if (score>bestscore) {
 				PlayerPrefs.SetInt("bestscore", score);
 				bestscore = score;
@@ -583,6 +625,7 @@ public class Game_Script : MonoBehaviour {
 		tailSpawnPosition = new Vector2(head.transform.position.x,head.transform.position.y - headSize.y);
 		for (int i = 0; i < tailInitialCount; i++) {
 			tailSpawnObject = (GameObject)Instantiate (tailPrefab, tailSpawnPosition, Quaternion.identity);
+			tailSpawnObject.GetComponent<SpriteRenderer> ().sprite = characters [selectedCharacter].tail;
 			tailSpawnObject.transform.parent = movingField.transform;
 			tailTransform.Add (tailSpawnObject.transform);
 			tailSpawnPosition.y = tailSpawnPosition.y - headSize.y;
@@ -639,6 +682,7 @@ public class Game_Script : MonoBehaviour {
 		tailSpawnPosition = new Vector2(head.transform.position.x,head.transform.position.y - headSize.y);
 		for (int i = 0; i < tailCount; i++) {
 			tailSpawnObject = (GameObject)Instantiate (tailPrefab, tailSpawnPosition, Quaternion.identity);
+			tailSpawnObject.GetComponent<SpriteRenderer> ().sprite = characters [selectedCharacter].tail;
 			tailSpawnObject.transform.parent = movingField.transform;
 			tailTransform.Add (tailSpawnObject.transform);
 			tailSpawnPosition.y = tailSpawnPosition.y - headSize.y;
@@ -776,6 +820,63 @@ public class Game_Script : MonoBehaviour {
 	public void clickExitShop(){
 		playSelectSound ();
 		shopUI.SetActive (false);
+	}
+
+	public void clickBuy(int indexCharacter){
+		playSelectSound ();
+		if (collectedFood >= characters [indexCharacter].price) {
+
+			//Use recent bought character
+			clickUseCharacter (indexCharacter);
+
+			//parameter change
+			characters [indexCharacter].purchased = true;
+			PlayerPrefs.SetInt ("purchaseCharacter" + indexCharacter, 1);
+			//pay food
+			collectedFood = collectedFood - characters [indexCharacter].price;
+			PlayerPrefs.SetInt ("collectedFood", collectedFood);
+			collectedFoodText.text = "X " + collectedFood;
+
+		} else {
+			playSelectSound ();
+			notEnoughUI.SetActive (true);
+		}
+	}
+
+	public void clickUseCharacter(int indexCharacter){
+		playSelectSound ();
+		//UI change to used
+		tempCharacterObject = transform.Find ("Shop/Character" + indexCharacter).gameObject;
+		tempCharacterObject.transform.Find ("UsedLabel").gameObject.SetActive (true);
+		tempCharacterObject.transform.Find ("Purchase").gameObject.SetActive (false);
+		tempCharacterObject.transform.Find ("UseButton").gameObject.SetActive (false);
+		//Change old Used label
+		tempCharacterObject = transform.Find ("Shop/Character" + selectedCharacter).gameObject;
+		tempCharacterObject.transform.Find ("UsedLabel").gameObject.SetActive (false);
+		tempCharacterObject.transform.Find ("UseButton").gameObject.SetActive (true);
+
+		//change parameter
+		selectedCharacter = indexCharacter;
+		PlayerPrefs.SetInt("selectedCharacter",selectedCharacter);
+
+		//snake sprite change
+		head.GetComponent<SpriteRenderer> ().sprite = characters [selectedCharacter].head;
+		refresh();
+	}
+
+	public void clickExitNotEnough (){
+		playSelectSound ();
+		notEnoughUI.SetActive (false);
+		afterAdsUI.SetActive (false);
+	}
+
+	public void adsFoodReward(int rewardAmount){
+		//collected food
+		collectedFood = collectedFood + rewardAmount;
+		PlayerPrefs.SetInt ("collectedFood", collectedFood);
+		collectedFoodText.text = "X " + collectedFood;
+
+		afterAdsUI.SetActive (true);
 	}
 
 	private void playSelectSound(){
