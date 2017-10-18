@@ -232,8 +232,9 @@ public class Game_Script : MonoBehaviour {
 			}
 
 			//each Character in shop UI
-			tempCharacterObject = transform.Find ("Shop/Character" + i).gameObject;
-			tempCharacterObject.transform.Find ("Image").GetComponent<Image> ().sprite = characters [i].head;
+			tempCharacterObject = transform.Find ("Shop/ScrollView/Viewport/Content/Character" + i).gameObject;
+			tempCharacterObject.transform.Find ("Head").GetComponent<Image> ().sprite = characters [i].head;
+			tempCharacterObject.transform.Find ("Tail").GetComponent<Image> ().sprite = characters [i].tail;
 			if (selectedCharacter == i) {
 				tempCharacterObject.transform.Find ("UseButton").gameObject.SetActive (false);
 				tempCharacterObject.transform.Find ("Purchase").gameObject.SetActive (false);
@@ -846,12 +847,12 @@ public class Game_Script : MonoBehaviour {
 	public void clickUseCharacter(int indexCharacter){
 		playSelectSound ();
 		//UI change to used
-		tempCharacterObject = transform.Find ("Shop/Character" + indexCharacter).gameObject;
+		tempCharacterObject = transform.Find ("Shop/ScrollView/Viewport/Content/Character" + indexCharacter).gameObject;
 		tempCharacterObject.transform.Find ("UsedLabel").gameObject.SetActive (true);
 		tempCharacterObject.transform.Find ("Purchase").gameObject.SetActive (false);
 		tempCharacterObject.transform.Find ("UseButton").gameObject.SetActive (false);
 		//Change old Used label
-		tempCharacterObject = transform.Find ("Shop/Character" + selectedCharacter).gameObject;
+		tempCharacterObject = transform.Find ("Shop/ScrollView/Viewport/Content/Character" + selectedCharacter).gameObject;
 		tempCharacterObject.transform.Find ("UsedLabel").gameObject.SetActive (false);
 		tempCharacterObject.transform.Find ("UseButton").gameObject.SetActive (true);
 
