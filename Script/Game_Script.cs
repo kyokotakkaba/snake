@@ -36,6 +36,7 @@ public class Game_Script : MonoBehaviour {
 	//shop UI
 	private GameObject shopUI;
 	private GameObject notEnoughUI;
+	private GameObject wantToBuyUI;
 	private GameObject afterAdsUI;
 
 	//camera
@@ -65,10 +66,12 @@ public class Game_Script : MonoBehaviour {
 	//Characters
 	public Character_Templates[] characters;
 	private int selectedCharacter;
+	private int buyIndexCharacter;
 	GameObject tempCharacterObject;
 
 	private int collectedFood;
-	private Text collectedFoodText;
+	private Text collectedFoodTextShop;
+	private Text collectedFoodTextMenu;
 
 
 
@@ -146,6 +149,7 @@ public class Game_Script : MonoBehaviour {
 	void Start () {
 		ads = this.GetComponent<Ads> ();
 
+
 		//audio
 		BGMaudioSource = this.GetComponent<AudioSource>();
 		SEaudioSource = this.gameObject.AddComponent<AudioSource> ();
@@ -178,6 +182,7 @@ public class Game_Script : MonoBehaviour {
 		quitUI = GameObject.Find ("Quit");
 		shopUI = GameObject.Find ("Shop");
 		notEnoughUI = GameObject.Find ("NotEnough");
+		wantToBuyUI = GameObject.Find ("WantToBuy");
 		afterAdsUI = GameObject.Find ("AfterAds");
 
 
@@ -199,6 +204,7 @@ public class Game_Script : MonoBehaviour {
 		//shop UI
 		shopUI.SetActive (false);
 		notEnoughUI.SetActive (false);
+		wantToBuyUI.SetActive (false);
 		afterAdsUI.SetActive (false);
 
 		//moving field
@@ -217,10 +223,13 @@ public class Game_Script : MonoBehaviour {
 
 		//Collected Food
 		collectedFood = PlayerPrefs.GetInt("collectedFood",0);
-		collectedFoodText = transform.Find ("Shop/FoodImage/CollectedFood").GetComponent<Text>();
-		collectedFoodText.text = "X " + collectedFood;
+		collectedFoodTextShop = transform.Find ("Shop/FoodImage/CollectedFood").GetComponent<Text>();
+		collectedFoodTextMenu = transform.Find ("MainMenu/FoodImage/CollectedFood").GetComponent<Text>();
+		collectedFoodTextShop.text = "" + collectedFood;
+		collectedFoodTextMenu.text = "" + collectedFood;
 
 		selectedCharacter = PlayerPrefs.GetInt("selectedCharacter",0);
+		buyIndexCharacter = 0;
 		print ("selected:" + selectedCharacter);
 		for (int i = 0; i < characters.Length; i++) {
 
@@ -319,7 +328,7 @@ public class Game_Script : MonoBehaviour {
 			if (cameraView.orthographicSize < 5) {
 				cameraView.orthographicSize += Time.deltaTime * zoomOutSpeed;
 			}else if (cameraView.orthographicSize > 5.1) {
-				cameraView.orthographicSize -= Time.deltaTime*2;
+				cameraView.orthographicSize -= Time.deltaTime*3;
 			}
 			
 			//if back button pressed, pause game
@@ -346,10 +355,14 @@ public class Game_Script : MonoBehaviour {
 					clickResume ();
 				} else if (gameoverUI.activeSelf) {
 					clickExit ();
+				} else if (howtoUI.activeSelf) {
+					clickCloseHowTo();
+				} else if (notEnoughUI.activeSelf) {
+					clickExitNotEnough ();
+				} else if (wantToBuyUI.activeSelf) {
+					clickExitWantToBuy ();
 				} else if (shopUI.activeSelf) {
 					clickExitShop ();
-				}else if (notEnoughUI.activeSelf) {
-					clickExitNotEnough ();
 				} else if (quitUI.activeSelf) {
 					quitUI.SetActive (false);
 				} else {
@@ -503,7 +516,8 @@ public class Game_Script : MonoBehaviour {
 			//collected food
 			collectedFood = collectedFood + score;
 			PlayerPrefs.SetInt ("collectedFood", collectedFood);
-			collectedFoodText.text = "X " + collectedFood;
+			collectedFoodTextShop.text = "" + collectedFood;
+			collectedFoodTextMenu.text = "" + collectedFood;
 
 			//best score
 			if (score>bestscore) {
@@ -826,22 +840,30 @@ public class Game_Script : MonoBehaviour {
 	public void clickBuy(int indexCharacter){
 		playSelectSound ();
 		if (collectedFood >= characters [indexCharacter].price) {
+			wantToBuyUI.SetActive (true);
+			buyIndexCharacter = indexCharacter;
 
-			//Use recent bought character
-			clickUseCharacter (indexCharacter);
 
-			//parameter change
-			characters [indexCharacter].purchased = true;
-			PlayerPrefs.SetInt ("purchaseCharacter" + indexCharacter, 1);
-			//pay food
-			collectedFood = collectedFood - characters [indexCharacter].price;
-			PlayerPrefs.SetInt ("collectedFood", collectedFood);
-			collectedFoodText.text = "X " + collectedFood;
+
 
 		} else {
-			playSelectSound ();
 			notEnoughUI.SetActive (true);
 		}
+	}
+
+	public void ClickConfirmBuy(){
+		clickExitWantToBuy ();
+		//Use recent bought character
+		clickUseCharacter (buyIndexCharacter);
+
+		//parameter change
+		characters [buyIndexCharacter].purchased = true;
+		PlayerPrefs.SetInt ("purchaseCharacter" + buyIndexCharacter, 1);
+		//pay food
+		collectedFood = collectedFood - characters [buyIndexCharacter].price;
+		PlayerPrefs.SetInt ("collectedFood", collectedFood);
+		collectedFoodTextShop.text = "" + collectedFood;
+		collectedFoodTextMenu.text = "" + collectedFood;
 	}
 
 	public void clickUseCharacter(int indexCharacter){
@@ -871,11 +893,17 @@ public class Game_Script : MonoBehaviour {
 		afterAdsUI.SetActive (false);
 	}
 
+	public void clickExitWantToBuy(){
+		playSelectSound ();
+		wantToBuyUI.SetActive (false);
+	}
+
 	public void adsFoodReward(int rewardAmount){
 		//collected food
 		collectedFood = collectedFood + rewardAmount;
 		PlayerPrefs.SetInt ("collectedFood", collectedFood);
-		collectedFoodText.text = "X " + collectedFood;
+		collectedFoodTextShop.text = "" + collectedFood;
+		collectedFoodTextMenu.text = "" + collectedFood;
 
 		afterAdsUI.SetActive (true);
 	}
