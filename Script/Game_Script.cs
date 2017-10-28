@@ -230,7 +230,6 @@ public class Game_Script : MonoBehaviour {
 
 		selectedCharacter = PlayerPrefs.GetInt("selectedCharacter",0);
 		buyIndexCharacter = 0;
-		print ("selected:" + selectedCharacter);
 		for (int i = 0; i < characters.Length; i++) {
 
 			//get purchase Status database
