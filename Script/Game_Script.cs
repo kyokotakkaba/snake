@@ -5,6 +5,10 @@ using UnityEngine.UI;
 using System.IO;
 
 public class Game_Script : MonoBehaviour {
+	//splash screen
+	public float splash_DelayTime;
+	private GameObject splashUI;
+
 	//ads component
 	private Ads ads;
 
@@ -147,6 +151,9 @@ public class Game_Script : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+		splashUI = GameObject.Find ("SplashScreen");
+		StartCoroutine(FadeSplash());
+
 		ads = this.GetComponent<Ads> ();
 
 
@@ -157,13 +164,6 @@ public class Game_Script : MonoBehaviour {
 		muteONButton = GameObject.Find ("MuteON");
 		muteOFFButton = GameObject.Find ("MuteOFF");
 		muteState = PlayerPrefs.GetInt("mutestate",0);
-		if (muteState > 0) {
-			muteONButton.SetActive (false);
-			//BGMaudioSource.Stop (); //No need because play on awake is false
-		} else {
-			muteOFFButton.SetActive (false);
-			BGMaudioSource.Play ();
-		}
 
 
 		//revive
@@ -316,6 +316,27 @@ public class Game_Script : MonoBehaviour {
 		headInitialPosition = head.transform.position;
 		headInitialRotation = head.transform.rotation;
 		shadowInitialPosition = headShadow.transform.position;
+
+
+	}
+
+	IEnumerator FadeSplash(){
+		Image panelImage = GameObject.Find("SplashPanel").GetComponent<Image> ();
+		panelImage.CrossFadeAlpha(0.0f, 1.0f, false); //(alpha value, fade speed, not important)
+		yield return new WaitForSeconds(splash_DelayTime);
+		panelImage.CrossFadeAlpha(1.0f, 1.0f, false);
+		yield return new WaitForSeconds(1.5f);
+
+		splashUI.SetActive (false);
+		//Finish Splash, start the sound
+		if (muteState > 0) {
+			muteONButton.SetActive (false);
+			//BGMaudioSource.Stop (); //No need because play on awake is false
+		} else {
+			muteOFFButton.SetActive (false);
+			BGMaudioSource.Play ();
+		}
+
 
 
 	}
