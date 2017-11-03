@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Advertisements;
 using System.Collections;
 using GoogleMobileAds.Api;
 
@@ -6,13 +7,17 @@ public class Ads : MonoBehaviour {
 	private BannerView bannerViewTop;
 	private BannerView bannerViewBottom;
 	private InterstitialAd interstitial;
-	private RewardBasedVideoAd rewardVideo;
+	//private RewardBasedVideoAd rewardVideo;
 
 
 	private string bannerID;
 	private string interstitialID;
-	private string rewardVideoID;
+	//private string rewardVideoID;
 	private AdRequest bannerAdRequest;
+
+
+	//unity ads android id
+	private string gameId = "1552175";
 
 	public int interstitialShowAfter;
 	private int interstitialCounter;
@@ -28,17 +33,24 @@ public class Ads : MonoBehaviour {
 		//rewardVideoID = "ca-app-pub-3940256099942544/5224354917";
 
 		interstitialID = "ca-app-pub-8796483174280591/7677020838";
-		rewardVideoID = "ca-app-pub-8796483174280591/7181540275";
+		//rewardVideoID = "ca-app-pub-8796483174280591/7181540275";
 
 		//bannerAdRequest = new AdRequest.Builder().Build();
 
 		interstitialCounter = 0;
 		RequestInterstitial ();
 
-		rewardVideo = RewardBasedVideoAd.Instance;
-		rewardVideo.OnAdClosed += HandleOnAdClosed;
-		rewardVideo.OnAdRewarded += HandleRewardBasedVideoRewarded;
-		RequestRewardVideo ();
+		//rewardVideo = RewardBasedVideoAd.Instance;
+		//rewardVideo.OnAdClosed += HandleOnAdClosed;
+		//rewardVideo.OnAdRewarded += HandleRewardBasedVideoRewarded;
+		//RequestRewardVideo ();
+
+
+		//Initialize unity ads
+		if (Advertisement.isSupported) {
+			Advertisement.Initialize (gameId, true);
+		}
+
 
 		//specific script for video ads handler
 		gameScript = this.GetComponent<Game_Script>();
@@ -118,6 +130,7 @@ public class Ads : MonoBehaviour {
 
 	}
 
+	/*
 	private void RequestRewardVideo(){
 		string adUnitId = rewardVideoID;
 
@@ -125,7 +138,7 @@ public class Ads : MonoBehaviour {
 		rewardVideo.LoadAd(request, adUnitId);
 	}
 
-	public void showRewardVideo(){
+	public void ShowRewardVideo(){
 		if (rewardVideo.IsLoaded()) {
 			rewardVideo.Show ();
 		} else {
@@ -149,10 +162,42 @@ public class Ads : MonoBehaviour {
 		}
 
 	}
+	*/
+
+
+	//unity reward video
+	public void ShowRewardVideo ()
+	{
+		ShowOptions options = new ShowOptions();
+		options.resultCallback = HandleShowResult;
+
+		Advertisement.Show("rewardedVideo", options);
+
+	}
+
+	void HandleShowResult (ShowResult result)
+	{
+		if(result == ShowResult.Finished) {
+			Debug.Log("Video completed - Offer a reward to the player");
+			if (freeFoodReward) {
+				freeFoodReward = false;
+				gameScript.adsFoodReward (30);
+			} else {
+				gameScript.refreshRevive();
+			}
+
+		}else if(result == ShowResult.Skipped) {
+			Debug.LogWarning("Video was skipped - Do NOT reward the player");
+
+		}else if(result == ShowResult.Failed) {
+			Debug.LogError("Video failed to show");
+		}
+		freeFoodReward = false;
+	}
 
 	public void startFreeFoodReward(){
 		freeFoodReward = true;
-		showRewardVideo ();
+		ShowRewardVideo ();
 
 	}
 

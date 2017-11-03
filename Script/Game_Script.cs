@@ -744,7 +744,7 @@ public class Game_Script : MonoBehaviour {
 	}
 
 	public void clickRevive(){
-		ads.showRewardVideo ();
+		ads.ShowRewardVideo ();
 	}
 
 	public void clickStartRevive(){
