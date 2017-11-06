@@ -771,7 +771,8 @@ public class Game_Script : MonoBehaviour {
 		if(!Application.isEditor)
 		{
 			//if UNITY_ANDROID
-			string body = "Can you beat my best score";
+			string body = "Can you beat my best score?\n" +
+				"https://play.google.com/store/apps/details?id=com.bekko.SnuckySnake";
 			string subject = "Snucky Snake score";
 
 			AndroidJavaClass intentClass = new AndroidJavaClass("android.content.Intent");
