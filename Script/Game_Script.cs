@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using System.IO;
+//using GooglePlayGames;
+//using UnityEngine.SocialPlatforms;
 
 public class Game_Script : MonoBehaviour {
 	//splash screen
@@ -11,6 +13,9 @@ public class Game_Script : MonoBehaviour {
 
 	//ads component
 	private Ads ads;
+
+	//leaderboard
+	//private string leaderboardID = "CgkIlLfmt4cOEAIQAQ";
 
 	//Audio
 	public AudioClip selectSound;
@@ -151,6 +156,16 @@ public class Game_Script : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+		
+		//google play service
+		// recommended for debugging:
+		//PlayGamesPlatform.DebugLogEnabled = true;
+		// Activate the Google Play Games platform
+		//PlayGamesPlatform.Activate ();
+		//GooglePlayLogIn ();
+
+
+
 		splashUI = GameObject.Find ("SplashScreen");
 		StartCoroutine(FadeSplash());
 
@@ -392,6 +407,47 @@ public class Game_Script : MonoBehaviour {
 			} 
 		}
 	}
+
+
+
+	/*
+	//google play LeaderBoard
+	public void GooglePlayLogIn ()
+	{
+		Social.localUser.Authenticate ((bool success) =>
+			{
+				if (success) {
+					Debug.Log ("Login Sucess");
+				} else {
+					Debug.Log ("Login failed");
+				}
+			});
+	}
+	public void OnShowLeaderBoard ()
+	{
+		//        Social.ShowLeaderboardUI (); // Show all leaderboard
+		((PlayGamesPlatform)Social.Active).ShowLeaderboardUI (leaderboardID); // Show current (Active) leaderboard
+	}
+	public void OnAddScoreToLeaderBoard (int score)
+	{
+		if (Social.localUser.authenticated) {
+			Social.ReportScore (score, leaderboardID, (bool success) =>
+				{
+					if (success) {
+						Debug.Log ("Update Score Success");
+
+					} else {
+						Debug.Log ("Update Score Fail");
+					}
+				});
+		}
+	}
+	*/
+
+
+
+
+
 
 	private void Move(){
 
