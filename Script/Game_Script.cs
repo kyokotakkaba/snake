@@ -3,19 +3,20 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using System.IO;
-//using GooglePlayGames;
-//using UnityEngine.SocialPlatforms;
+using GooglePlayGames;
+using UnityEngine.SocialPlatforms;
 
 public class Game_Script : MonoBehaviour {
 	//splash screen
 	public float splash_DelayTime;
 	private GameObject splashUI;
+	private Image panelImage;
 
 	//ads component
 	private Ads ads;
 
 	//leaderboard
-	//private string leaderboardID = "CgkIlLfmt4cOEAIQAQ";
+	private string leaderboardID = "CgkIlLfmt4cOEAIQAQ";
 
 	//Audio
 	public AudioClip selectSound;
@@ -37,6 +38,7 @@ public class Game_Script : MonoBehaviour {
 	//UI object
 	private GameObject menuUI;
 	private GameObject howtoUI;
+	private GameObject tutorialUI;
 	private GameObject playUI;
 	private GameObject gameoverUI;
 	private GameObject reviveUI;
@@ -52,6 +54,15 @@ public class Game_Script : MonoBehaviour {
 	private Camera cameraView;
 	private float InitialOrthographicSize;
 	public float zoomOutSpeed;
+
+	//tutorial
+	private GameObject tutorialControl;
+	private GameObject tutorialLeft;
+	private GameObject tutorialRight;
+	private GameObject tutorialEnd;
+
+
+
 
 	//Scoring UI
 	private Text currentScoreText;
@@ -81,8 +92,6 @@ public class Game_Script : MonoBehaviour {
 	private int collectedFood;
 	private Text collectedFoodTextShop;
 	private Text collectedFoodTextMenu;
-
-
 
 
 	//Head
@@ -150,24 +159,27 @@ public class Game_Script : MonoBehaviour {
 	private Vector2 shadowInitialPosition;
 
 	public GameObject stageInitialPrefab;
+	public GameObject stageTutorialPrefab;
 	public GameObject stageRevivePrefab;
 
 
 
 	// Use this for initialization
 	void Start () {
-		
+		//Delete all save data for debug
+		//PlayerPrefs.DeleteAll();
+
 		//google play service
 		// recommended for debugging:
 		//PlayGamesPlatform.DebugLogEnabled = true;
 		// Activate the Google Play Games platform
-		//PlayGamesPlatform.Activate ();
-		//GooglePlayLogIn ();
+		PlayGamesPlatform.Activate ();
 
 
-
+		//splash
 		splashUI = GameObject.Find ("SplashScreen");
-		StartCoroutine(FadeSplash());
+		panelImage = GameObject.Find("SplashPanel").GetComponent<Image> ();
+		FadeInSplash();
 
 		ads = this.GetComponent<Ads> ();
 
@@ -195,10 +207,18 @@ public class Game_Script : MonoBehaviour {
 		gameoverUI = GameObject.Find ("GameOver");
 		pauseUI = GameObject.Find ("Pause");
 		quitUI = GameObject.Find ("Quit");
+		//shopUI
 		shopUI = GameObject.Find ("Shop");
 		notEnoughUI = GameObject.Find ("NotEnough");
 		wantToBuyUI = GameObject.Find ("WantToBuy");
 		afterAdsUI = GameObject.Find ("AfterAds");
+		//Tutorial
+		tutorialUI = GameObject.Find ("Tutorial");
+		tutorialControl = GameObject.Find ("TutorialControl");
+		tutorialLeft = GameObject.Find ("TutorialLeft");
+		tutorialRight = GameObject.Find ("TutorialRight");
+		tutorialEnd = GameObject.Find ("TutorialEnd");
+
 
 
 
@@ -212,6 +232,7 @@ public class Game_Script : MonoBehaviour {
 		newBestScoreText = GameObject.Find ("NewBestScoreLabel");
 
 		howtoUI.SetActive (false);
+		tutorialUI.SetActive (false);
 		playUI.SetActive (false);
 		gameoverUI.SetActive (false);
 		pauseUI.SetActive (false);
@@ -310,9 +331,24 @@ public class Game_Script : MonoBehaviour {
 		digestObject = new Queue<GameObject>();
 
 
-		//stages inital spawn
+		//stages spawn initialize
 		prefabsToRand = new List<GameObject>();
 		recentStageObject = GameObject.Find("Stage0");
+
+
+		//tutorial stage spawn
+		if (PlayerPrefs.GetInt ("firstTime", 0) <= 0) {
+			selectedPrefab = stageTutorialPrefab;
+
+			selectedPrefabHeight = selectedPrefab.GetComponent<SpriteRenderer> ().sprite.bounds.extents.y * selectedPrefab.transform.localScale.y;
+			recentStageHeight = recentStageObject.GetComponent<SpriteRenderer> ().sprite.bounds.extents.y * recentStageObject.transform.localScale.y;
+			spawnPosition = recentStageObject.transform.position;
+			spawnPosition.y = spawnPosition.y + (recentStageHeight + selectedPrefabHeight);
+			recentStageObject = (GameObject)Instantiate (selectedPrefab, spawnPosition, Quaternion.identity);
+			recentStageObject.transform.parent = movingField.transform;
+		}
+
+		//stages inital spawn
 		for (int i = 0; i < stagesInitialCount; i++) {
 			spawnStages ();
 		}
@@ -335,13 +371,39 @@ public class Game_Script : MonoBehaviour {
 
 	}
 
-	IEnumerator FadeSplash(){
-		Image panelImage = GameObject.Find("SplashPanel").GetComponent<Image> ();
+	private void FadeInSplash(){
 		panelImage.CrossFadeAlpha(0.0f, 1.0f, false); //(alpha value, fade speed, not important)
+
+		GooglePlayLogIn (); //start login when splash screen show
+
+	}
+
+	//google play LeaderBoard
+	private void GooglePlayLogIn ()
+	{
+		Social.localUser.Authenticate ((bool success) =>
+			{
+				if (success) {
+					//Debug.Log ("Login Sucess");
+					//GameObject.Find("Leaderboard").SetActive(false);
+					StartCoroutine(FadeOutSplash());
+				} else {
+					//Debug.Log ("Login failed");
+					//GameObject.Find("Help").SetActive(false);
+					StartCoroutine(FadeOutSplash());
+				}
+			});
+	}
+
+	IEnumerator FadeOutSplash(){
 		yield return new WaitForSeconds(splash_DelayTime);
 		panelImage.CrossFadeAlpha(1.0f, 1.0f, false);
 		yield return new WaitForSeconds(1.5f);
 
+		finishLoadingSplash ();
+	}
+
+	private void finishLoadingSplash(){
 		splashUI.SetActive (false);
 		//Finish Splash, start the sound
 		if (muteState > 0) {
@@ -351,9 +413,6 @@ public class Game_Script : MonoBehaviour {
 			muteOFFButton.SetActive (false);
 			BGMaudioSource.Play ();
 		}
-
-
-
 	}
 	
 	// Update is called once per frame
@@ -409,26 +468,14 @@ public class Game_Script : MonoBehaviour {
 	}
 
 
-
-	/*
-	//google play LeaderBoard
-	public void GooglePlayLogIn ()
-	{
-		Social.localUser.Authenticate ((bool success) =>
-			{
-				if (success) {
-					Debug.Log ("Login Sucess");
-				} else {
-					Debug.Log ("Login failed");
-				}
-			});
-	}
-	public void OnShowLeaderBoard ()
+	//leaderboard
+	public void ClickShowLeaderBoard ()
 	{
 		//        Social.ShowLeaderboardUI (); // Show all leaderboard
 		((PlayGamesPlatform)Social.Active).ShowLeaderboardUI (leaderboardID); // Show current (Active) leaderboard
 	}
-	public void OnAddScoreToLeaderBoard (int score)
+
+	private void addScoreToLeaderBoard (int score)
 	{
 		if (Social.localUser.authenticated) {
 			Social.ReportScore (score, leaderboardID, (bool success) =>
@@ -442,11 +489,6 @@ public class Game_Script : MonoBehaviour {
 				});
 		}
 	}
-	*/
-
-
-
-
 
 
 	private void Move(){
@@ -553,6 +595,45 @@ public class Game_Script : MonoBehaviour {
 		recentStageObject.transform.parent = movingField.transform;
 	}
 
+	public void TutorialTurnLeftInstruction(){
+		tutorialControl.SetActive (true);
+		tutorialLeft.SetActive (true);
+		tutorialRight.SetActive (false);
+		tutorialEnd.SetActive (false);
+		isPlaying = false;
+		clickLeftControl ();
+	}
+
+	public void TutorialTurnRightInstruction(){
+		tutorialControl.SetActive (true);
+		tutorialLeft.SetActive (false);
+		tutorialRight.SetActive (true);
+		tutorialEnd.SetActive (false);
+		isPlaying = false;
+		clickRightControl ();
+	}
+
+	public void TutorialEndInstruction(){
+		tutorialControl.SetActive (true);
+		tutorialLeft.SetActive (false);
+		tutorialRight.SetActive (false);
+		tutorialEnd.SetActive (true);
+		isPlaying = false;
+	}
+
+	public void clickContinueTutorial(){
+		tutorialControl.SetActive (false);
+		isPlaying = true;
+	}
+
+	public void clickEndTutorial(){
+		playSelectSound ();
+		PlayerPrefs.SetInt ("firstTime", 2);
+		tutorialUI.SetActive (false);
+		playUI.SetActive (true);
+		isPlaying = true;
+	}
+
 	public void clickPause(){
 		if (isPlaying) {
 			playSelectSound ();
@@ -606,22 +687,37 @@ public class Game_Script : MonoBehaviour {
 
 
 			ads.addInterstitialCounter ();
+			addScoreToLeaderBoard (bestscore);
 		}
 	}
 
 
 	public void clickStart(){
+		
+		menuUI.SetActive (false);
 		if (PlayerPrefs.GetInt ("firstTime", 0) <= 0) {
 			PlayerPrefs.SetInt ("firstTime", 1);
 			clickHowTo ();
+		} else if (PlayerPrefs.GetInt ("firstTime", 0) == 1) {
+			playSelectSound ();
+			tutorialUI.SetActive (true);
+			tutorialEnd.SetActive (false);
+			tutorialLeft.SetActive (false);
+			tutorialRight.SetActive (false);
+			tutorialControl.SetActive (false);
+			currentScoreText.text = "" + score;
+			isPlaying = true;
+			lastMoveTime = Time.time + snakeSpeed;
 		} else {
 			playSelectSound ();
-			menuUI.SetActive (false);
 			playUI.SetActive (true);
 			currentScoreText.text = "" + score;
 			isPlaying = true;
 			lastMoveTime = Time.time + snakeSpeed;
 		}
+
+
+
 
 	}
 
@@ -725,6 +821,17 @@ public class Game_Script : MonoBehaviour {
 		//digest
 		digestObject.Clear();
 
+		//tutorial stage spawn
+		if (PlayerPrefs.GetInt ("firstTime", 0) <= 0) {
+			selectedPrefab = stageTutorialPrefab;
+
+			selectedPrefabHeight = selectedPrefab.GetComponent<SpriteRenderer> ().sprite.bounds.extents.y * selectedPrefab.transform.localScale.y;
+			recentStageHeight = recentStageObject.GetComponent<SpriteRenderer> ().sprite.bounds.extents.y * recentStageObject.transform.localScale.y;
+			spawnPosition = recentStageObject.transform.position;
+			spawnPosition.y = spawnPosition.y + (recentStageHeight + selectedPrefabHeight);
+			recentStageObject = (GameObject)Instantiate (selectedPrefab, spawnPosition, Quaternion.identity);
+			recentStageObject.transform.parent = movingField.transform;
+		}
 
 		//stages inital spawn
 		for (int i = 0; i < stagesInitialCount; i++) {
@@ -858,6 +965,7 @@ public class Game_Script : MonoBehaviour {
 	public void clickExit(){
 		playSelectSound ();
 		menuUI.SetActive (true);
+		tutorialUI.SetActive (false);
 		pauseUI.SetActive (false);
 		cameraView.orthographicSize = InitialOrthographicSize;
 		refresh ();
@@ -884,7 +992,6 @@ public class Game_Script : MonoBehaviour {
 		} else {
 			playSelectSound ();
 		}
-		PlayerPrefs.SetInt ("firstTime", 2);
 		howtoUI.SetActive (false);
 
 	}

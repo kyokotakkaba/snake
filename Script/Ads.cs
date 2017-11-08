@@ -181,7 +181,7 @@ public class Ads : MonoBehaviour {
 			Debug.Log("Video completed - Offer a reward to the player");
 			if (freeFoodReward) {
 				freeFoodReward = false;
-				gameScript.adsFoodReward (30);
+				gameScript.adsFoodReward (50);
 			} else {
 				gameScript.refreshRevive();
 			}
