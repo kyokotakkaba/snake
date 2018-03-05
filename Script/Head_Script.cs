@@ -13,8 +13,15 @@ public class Head_Script : MonoBehaviour {
 			//eating
 			game.eat ();
 			Destroy (coll.gameObject);
+		} else if (coll.name.StartsWith("LeftTurnPoint")) {
+			game.TutorialTurnLeftInstruction ();
+		} else if (coll.name.StartsWith("RightTurnPoint")) {
+			game.TutorialTurnRightInstruction ();
+		} else if (coll.name.StartsWith("EndPoint")) {
+			game.TutorialEndInstruction ();
 		} else if (!coll.name.StartsWith("Stage")) {
-		//gameover	
+			//gameover
+			game.Gameover();
 		}
 	}
 }
